@@ -4,11 +4,11 @@ contract OffChainDebts {
     
     struct Debt {
         string borrowerName;
-        uint8 ammount;
+        uint32 totalAmmount;
         address addr;
     }
     
-    event BorrowLogger(string borrowerName, address addr, uint8 ammount);
+    event BorrowLogger(string borrowerName, address addr, uint32 ammount);
     mapping (string => Debt) debts;
     address owner;
     
@@ -16,15 +16,19 @@ contract OffChainDebts {
         owner = msg.sender;
     }
 
-   // Called by borrower
+   // Called by borrower. Borrower can borrow multiple times.
    // @param name - name of the borrower
    // @param ammount - money borrowed (in USD)
-   function borrow(string borrowerName, uint8 ammount) public {
-       Debt memory debt;
-       debt.borrowerName = borrowerName;
-       debt.ammount = ammount;
-       debt.addr = msg.sender;
-       debts[borrowerName] = debt;
+   function borrow(string borrowerName, uint32 ammount) public {
+       if (debts[borrowerName].totalAmmount > 0){
+           debts[borrowerName].totalAmmount += ammount;
+       } else {
+           Debt memory debt;
+           debt.borrowerName = borrowerName;
+           debt.totalAmmount = ammount;
+           debt.addr = msg.sender;
+           debts[borrowerName] = debt;
+       }
        BorrowLogger(borrowerName, msg.sender, ammount);
    }
    
